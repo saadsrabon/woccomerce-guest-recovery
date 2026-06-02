@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       Guest Customer Recovery & Marketing Suite
- * Plugin URI:        https://example.com/guest-customer-recovery-marketing-suite
+ * Plugin URI:        https://github.com/saadsrabon/woccomerce-guest-recovery
  * Description:       WooCommerce guest customer recovery, abandoned cart tracking, bulk email/WhatsApp marketing, segmentation, and analytics.
  * Version:           1.0.0
  * Requires at least: 6.5

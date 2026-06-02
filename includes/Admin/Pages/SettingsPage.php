@@ -7,6 +7,7 @@
 
 namespace GCRM\Admin\Pages;
 
+use GCRM\Core\Updater;
 use GCRM\Integrations\WhatsAppCloud;
 
 defined( 'ABSPATH' ) || exit;
@@ -24,9 +25,71 @@ class SettingsPage {
 			$this->save_settings();
 			echo '<div class="notice notice-success"><p>' . esc_html__( 'Settings saved.', 'gcrm' ) . '</p></div>';
 		}
+
+		if ( ! empty( $_GET['gcrm_update_found'] ) ) {
+			echo '<div class="notice notice-warning"><p>' . esc_html( sprintf(
+				/* translators: %s: version number */
+				__( 'Update available: version %s. Use the button below or go to Plugins → Updates.', 'gcrm' ),
+				sanitize_text_field( wp_unslash( $_GET['gcrm_update_found'] ) )
+			) ) . '</p></div>';
+		}
+		if ( ! empty( $_GET['gcrm_update_none'] ) ) {
+			echo '<div class="notice notice-success"><p>' . esc_html__( 'You are running the latest version (or no update server is configured).', 'gcrm' ) . '</p></div>';
+		}
+
+		$updater_status = ( new Updater() )->get_status();
+		$check_updates_url = wp_nonce_url(
+			admin_url( 'admin.php?page=gcrm-settings&gcrm_check_updates=1' ),
+			'gcrm_check_updates'
+		);
+		$update_now_url = '';
+		if ( $updater_status['update_available'] && current_user_can( 'update_plugins' ) ) {
+			$update_now_url = wp_nonce_url(
+				self_admin_url( 'update.php?action=upgrade-plugin&plugin=' . rawurlencode( GCRM_PLUGIN_BASENAME ) ),
+				'upgrade-plugin_' . GCRM_PLUGIN_BASENAME
+			);
+		}
 		?>
 		<div class="wrap gcrm-wrap">
 			<h1><?php esc_html_e( 'GCRM Settings', 'gcrm' ); ?></h1>
+
+			<div class="gcrm-update-panel card">
+				<h2><?php esc_html_e( 'Plugin Updates', 'gcrm' ); ?></h2>
+				<table class="form-table">
+					<tr>
+						<th><?php esc_html_e( 'Installed version', 'gcrm' ); ?></th>
+						<td><strong><?php echo esc_html( $updater_status['current'] ); ?></strong></td>
+					</tr>
+					<tr>
+						<th><?php esc_html_e( 'Latest available', 'gcrm' ); ?></th>
+						<td>
+							<?php if ( $updater_status['latest'] ) : ?>
+								<strong><?php echo esc_html( $updater_status['latest'] ); ?></strong>
+								<?php if ( $updater_status['update_available'] ) : ?>
+									<span class="gcrm-badge-update"><?php esc_html_e( 'Update available', 'gcrm' ); ?></span>
+								<?php else : ?>
+									<span class="gcrm-badge-ok"><?php esc_html_e( 'Up to date', 'gcrm' ); ?></span>
+								<?php endif; ?>
+							<?php elseif ( $updater_status['configured'] ) : ?>
+								<?php esc_html_e( 'Could not reach update server. Try again.', 'gcrm' ); ?>
+							<?php else : ?>
+								<?php esc_html_e( 'Configure update URL below to enable checks.', 'gcrm' ); ?>
+							<?php endif; ?>
+						</td>
+					</tr>
+				</table>
+				<p>
+					<?php if ( current_user_can( 'update_plugins' ) ) : ?>
+						<a href="<?php echo esc_url( $check_updates_url ); ?>" class="button button-secondary"><?php esc_html_e( 'Check for updates', 'gcrm' ); ?></a>
+						<?php if ( $update_now_url ) : ?>
+							<a href="<?php echo esc_url( $update_now_url ); ?>" class="button button-primary"><?php esc_html_e( 'Update now', 'gcrm' ); ?></a>
+						<?php endif; ?>
+						<a href="<?php echo esc_url( self_admin_url( 'plugins.php' ) ); ?>" class="button"><?php esc_html_e( 'Go to Plugins', 'gcrm' ); ?></a>
+					<?php endif; ?>
+				</p>
+				<p class="description"><?php esc_html_e( 'When a new release is published, admins see a dashboard notice and can install updates from Plugins → Updates (same as WordPress.org plugins).', 'gcrm' ); ?></p>
+			</div>
+
 			<form method="post">
 				<?php wp_nonce_field( 'gcrm_settings' ); ?>
 				<h2><?php esc_html_e( 'Abandoned Cart', 'gcrm' ); ?></h2>
@@ -83,6 +146,21 @@ class SettingsPage {
 					<tr><th>Webhook URL</th><td><input type="url" name="gcrm_webhook_url" class="large-text" value="<?php echo esc_url( (string) get_option( 'gcrm_webhook_url', '' ) ); ?>" /></td></tr>
 				</table>
 
+				<h2><?php esc_html_e( 'Updates', 'gcrm' ); ?></h2>
+				<table class="form-table">
+					<tr>
+						<th><label for="gcrm_update_check_url"><?php esc_html_e( 'Update check URL', 'gcrm' ); ?></label></th>
+						<td>
+							<input type="url" id="gcrm_update_check_url" name="gcrm_update_check_url" class="large-text" value="<?php echo esc_attr( (string) get_option( 'gcrm_update_check_url', 'https://github.com/saadsrabon/woccomerce-guest-recovery' ) ); ?>" placeholder="https://github.com/saadsrabon/woccomerce-guest-recovery" />
+							<p class="description">
+								<?php esc_html_e( 'GitHub repository URL for releases (recommended) or a custom update.json URL.', 'gcrm' ); ?>
+								<br />
+								<a href="https://github.com/saadsrabon/woccomerce-guest-recovery/releases" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View releases on GitHub', 'gcrm' ); ?></a>
+							</p>
+						</td>
+					</tr>
+				</table>
+
 				<h2><?php esc_html_e( 'GDPR', 'gcrm' ); ?></h2>
 				<table class="form-table">
 					<tr><th><?php esc_html_e( 'Require marketing consent', 'gcrm' ); ?></th><td><label><input type="checkbox" name="gcrm_gdpr_consent_required" value="yes" <?php checked( get_option( 'gcrm_gdpr_consent_required', 'no' ), 'yes' ); ?> /> <?php esc_html_e( 'Yes', 'gcrm' ); ?></label></td></tr>
@@ -109,13 +187,22 @@ class SettingsPage {
 			'gcrm_whatsapp_provider', 'gcrm_whatsapp_phone_id', 'gcrm_twilio_account_sid',
 			'gcrm_twilio_whatsapp_from', 'gcrm_whatsapp_rate_limit', 'gcrm_abandoned_coupon_percent',
 			'gcrm_mailchimp_api_key', 'gcrm_mailchimp_list_id', 'gcrm_brevo_api_key',
-			'gcrm_sendgrid_api_key', 'gcrm_webhook_url',
+			'gcrm_sendgrid_api_key', 'gcrm_webhook_url', 'gcrm_update_check_url',
 		);
 		foreach ( $fields as $field ) {
 			if ( isset( $_POST[ $field ] ) ) {
-				update_option( $field, sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) );
+				$value = 'gcrm_update_check_url' === $field
+					? esc_url_raw( wp_unslash( $_POST[ $field ] ) )
+					: sanitize_text_field( wp_unslash( $_POST[ $field ] ) );
+				update_option( $field, $value );
 			}
 		}
+
+		if ( isset( $_POST['gcrm_update_check_url'] ) ) {
+			( new Updater() )->clear_cache();
+			delete_site_transient( 'update_plugins' );
+		}
+		update_option( 'gcrm_update_last_check', current_time( 'mysql' ) );
 
 		if ( ! empty( $_POST['gcrm_whatsapp_cloud_token'] ) ) {
 			WhatsAppCloud::store_credential( 'gcrm_whatsapp_cloud_token', sanitize_text_field( wp_unslash( $_POST['gcrm_whatsapp_cloud_token'] ) ) );

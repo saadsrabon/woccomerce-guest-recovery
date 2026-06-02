@@ -59,6 +59,7 @@ class Activator {
 			'gcrm_batch_size'                 => 25,
 			'gcrm_gdpr_consent_required'      => 'no',
 			'gcrm_export_delimiter'           => ',',
+			'gcrm_update_check_url'           => 'https://github.com/saadsrabon/woccomerce-guest-recovery',
 		);
 
 		foreach ( $defaults as $key => $value ) {

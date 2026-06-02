@@ -64,8 +64,17 @@ class Plugin {
 		$this->define_rest_hooks();
 		$this->define_woocommerce_hooks();
 		$this->define_gdpr_hooks();
+		$this->define_updater_hooks();
 
 		$this->loader->run();
+	}
+
+	/**
+	 * Plugin update checker (remote JSON or GitHub releases).
+	 */
+	private function define_updater_hooks(): void {
+		$updater = new Updater();
+		$updater->init();
 	}
 
 	/**

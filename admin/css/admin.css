@@ -1,3 +1,37 @@
+.gcrm-update-panel {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	padding: 16px 20px;
+	margin: 0 0 20px;
+	max-width: 900px;
+}
+
+.gcrm-update-panel h2 {
+	margin-top: 0;
+}
+
+.gcrm-badge-update {
+	display: inline-block;
+	background: #d63638;
+	color: #fff;
+	font-size: 11px;
+	padding: 2px 8px;
+	border-radius: 3px;
+	margin-left: 8px;
+	vertical-align: middle;
+}
+
+.gcrm-badge-ok {
+	display: inline-block;
+	background: #00a32a;
+	color: #fff;
+	font-size: 11px;
+	padding: 2px 8px;
+	border-radius: 3px;
+	margin-left: 8px;
+	vertical-align: middle;
+}
+
 .gcrm-wrap .gcrm-filters {
 	display: flex;
 	flex-wrap: wrap;
