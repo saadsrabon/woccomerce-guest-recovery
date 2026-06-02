@@ -1,0 +1,71 @@
+.gcrm-wrap .gcrm-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	margin: 16px 0;
+}
+
+.gcrm-stats-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 16px;
+	margin: 20px 0;
+}
+
+.gcrm-stat-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 16px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.gcrm-stat-card .label {
+	display: block;
+	font-size: 12px;
+	color: #646970;
+	margin-bottom: 8px;
+}
+
+.gcrm-stat-card .value {
+	font-size: 22px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.gcrm-profile-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 20px;
+	margin-bottom: 24px;
+}
+
+.gcrm-profile-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	padding: 16px;
+	border-radius: 4px;
+}
+
+.gcrm-bulk-panel {
+	background: #f6f7f7;
+	border: 1px solid #c3c4c7;
+	padding: 16px;
+	margin-top: 20px;
+	border-radius: 4px;
+}
+
+.gcrm-charts {
+	background: #fff;
+	padding: 20px;
+	border: 1px solid #c3c4c7;
+	margin: 20px 0;
+	max-width: 800px;
+}
+
+@media (max-width: 782px) {
+	.gcrm-profile-grid {
+		grid-template-columns: 1fr;
+	}
+}

@@ -31,6 +31,8 @@ require_once GCRM_PLUGIN_DIR . 'includes/Core/Autoloader.php';
 
 GCRM\Core\Autoloader::register( GCRM_PLUGIN_DIR . 'includes/' );
 
+require_once GCRM_PLUGIN_DIR . 'includes/Frontend/RecoveryHandler.php';
+
 /**
  * HPOS compatibility declaration.
  */

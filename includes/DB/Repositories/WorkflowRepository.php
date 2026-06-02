@@ -34,4 +34,14 @@ class WorkflowRepository extends BaseRepository {
 			ARRAY_A
 		) ?: array();
 	}
+
+	/**
+	 * All workflows.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function all(): array {
+		global $wpdb;
+		return $wpdb->get_results( "SELECT * FROM {$this->table()} ORDER BY name ASC", ARRAY_A ) ?: array();
+	}
 }

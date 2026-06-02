@@ -20,10 +20,7 @@ class WorkflowsPage {
 	 * Render page.
 	 */
 	public function render(): void {
-		$workflows = ( new WorkflowRepository() )->all() ?? array();
-		global $wpdb;
-		$table = \GCRM\DB\Schema::table( 'workflows' );
-		$workflows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY name ASC", ARRAY_A ) ?: array();
+		$workflows = ( new WorkflowRepository() )->all();
 		?>
 		<div class="wrap gcrm-wrap">
 			<h1><?php esc_html_e( 'Automated Marketing Workflows', 'gcrm' ); ?></h1>

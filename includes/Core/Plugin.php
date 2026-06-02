@@ -122,6 +122,40 @@ class Plugin {
 		$this->loader->add_action( 'woocommerce_new_order', $sync, 'on_order_created', 20, 1 );
 		$this->loader->add_action( 'woocommerce_order_status_changed', $sync, 'on_order_status_changed', 20, 4 );
 		$this->loader->add_action( 'woocommerce_checkout_order_processed', $sync, 'on_checkout_processed', 20, 1 );
+		$this->loader->add_action( 'woocommerce_thankyou', $this, 'mark_cart_recovered_on_order', 10, 1 );
+		$this->loader->add_action( 'wp_ajax_gcrm_send_test_email', $this, 'ajax_send_test_email' );
+	}
+
+	/**
+	 * Mark abandoned cart recovered when order placed.
+	 *
+	 * @param int $order_id Order ID.
+	 */
+	public function mark_cart_recovered_on_order( $order_id ): void {
+		if ( ! WC()->session ) {
+			return;
+		}
+		$cart_id = (int) WC()->session->get( 'gcrm_recover_cart_id', 0 );
+		if ( $cart_id ) {
+			( new \GCRM\Services\Carts() )->mark_recovered( $cart_id, (int) $order_id );
+			WC()->session->set( 'gcrm_recover_cart_id', 0 );
+		}
+	}
+
+	/**
+	 * AJAX test email.
+	 */
+	public function ajax_send_test_email(): void {
+		check_ajax_referer( 'wp_rest', 'nonce' );
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_send_json_error();
+		}
+		$email = new \GCRM\Services\Email();
+		$sent  = $email->send_test(
+			sanitize_text_field( wp_unslash( $_POST['subject'] ?? '' ) ),
+			wp_kses_post( wp_unslash( $_POST['body'] ?? '' ) )
+		);
+		$sent ? wp_send_json_success() : wp_send_json_error();
 	}
 
 	/**
