@@ -5,9 +5,9 @@
  * Description:       WooCommerce guest customer recovery, abandoned cart tracking, bulk email/WhatsApp marketing, segmentation, and analytics.
  * Version:           1.0.0
  * Requires at least: 6.5
- * Requires PHP:      8.1
- * Author:            GCRM Team
- * Author URI:        https://example.com
+ * Requires PHP:      7.4
+ * Author:            Saad Srabon
+ * Author URI:        https://saadsrabon.com
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       gcrm
@@ -27,11 +27,19 @@ define( 'GCRM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GCRM_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'GCRM_DB_VERSION', '1.0.0' );
 
+require_once GCRM_PLUGIN_DIR . 'includes/Core/PhpCompat.php';
+
+if ( ! GCRM\Core\PhpCompat::meets_requirements() ) {
+	GCRM\Core\PhpCompat::register_admin_notice();
+	return;
+}
+
 require_once GCRM_PLUGIN_DIR . 'includes/Core/Autoloader.php';
 
 GCRM\Core\Autoloader::register( GCRM_PLUGIN_DIR . 'includes/' );
 
-require_once GCRM_PLUGIN_DIR . 'includes/Frontend/RecoveryHandler.php';
+// Register custom cron schedules early (needed during activation).
+add_filter( 'cron_schedules', array( 'GCRM\\Core\\Cron', 'add_schedules' ) );
 
 /**
  * HPOS compatibility declaration.

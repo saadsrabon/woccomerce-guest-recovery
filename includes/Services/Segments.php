@@ -7,6 +7,7 @@
 
 namespace GCRM\Services;
 
+use GCRM\Core\PhpCompat;
 use GCRM\DB\Repositories\CartRepository;
 use GCRM\DB\Repositories\GuestRepository;
 use GCRM\DB\Repositories\SegmentRepository;
@@ -74,15 +75,28 @@ class Segments {
 		$operator = $cond['operator'] ?? 'eq';
 		$value    = $cond['value'] ?? '';
 
-		$guest_value = match ( $field ) {
-			'order_count'          => (int) ( $guest['order_count'] ?? 0 ),
-			'total_spend'          => (float) ( $guest['total_spend'] ?? 0 ),
-			'country'              => (string) ( $guest['country'] ?? '' ),
-			'city'                 => (string) ( $guest['city'] ?? '' ),
-			'days_since_order'     => $this->days_since( $guest['last_order_date'] ?? '' ),
-			'abandoned_cart_value' => $this->max_abandoned_value( $guest['email'] ?? '' ),
-			default                => $guest[ $field ] ?? '',
-		};
+		switch ( $field ) {
+			case 'order_count':
+				$guest_value = (int) ( $guest['order_count'] ?? 0 );
+				break;
+			case 'total_spend':
+				$guest_value = (float) ( $guest['total_spend'] ?? 0 );
+				break;
+			case 'country':
+				$guest_value = (string) ( $guest['country'] ?? '' );
+				break;
+			case 'city':
+				$guest_value = (string) ( $guest['city'] ?? '' );
+				break;
+			case 'days_since_order':
+				$guest_value = $this->days_since( $guest['last_order_date'] ?? '' );
+				break;
+			case 'abandoned_cart_value':
+				$guest_value = $this->max_abandoned_value( $guest['email'] ?? '' );
+				break;
+			default:
+				$guest_value = $guest[ $field ] ?? '';
+		}
 
 		return $this->compare( $guest_value, $operator, $value );
 	}
@@ -98,16 +112,24 @@ class Segments {
 		$left  = is_numeric( $left ) ? (float) $left : $left;
 		$right = is_numeric( $right ) ? (float) $right : $right;
 
-		return match ( $operator ) {
-			'eq'  => $left == $right,
-			'neq' => $left != $right,
-			'gt'  => $left > $right,
-			'gte' => $left >= $right,
-			'lt'  => $left < $right,
-			'lte' => $left <= $right,
-			'contains' => is_string( $left ) && str_contains( strtolower( $left ), strtolower( (string) $right ) ),
-			default => false,
-		};
+		switch ( $operator ) {
+			case 'eq':
+				return $left == $right;
+			case 'neq':
+				return $left != $right;
+			case 'gt':
+				return $left > $right;
+			case 'gte':
+				return $left >= $right;
+			case 'lt':
+				return $left < $right;
+			case 'lte':
+				return $left <= $right;
+			case 'contains':
+				return is_string( $left ) && PhpCompat::str_contains( strtolower( $left ), strtolower( (string) $right ) );
+			default:
+				return false;
+		}
 	}
 
 	/**

@@ -31,27 +31,41 @@ class Loader {
 	/**
 	 * Add action.
 	 *
-	 * @param string $hook Hook name.
-	 * @param object $component Component instance.
-	 * @param string $callback Method name.
-	 * @param int    $priority Priority.
-	 * @param int    $accepted_args Accepted args.
+	 * @param string          $hook Hook name.
+	 * @param object|array    $component Object instance, or callable array e.g. array( Class::class, 'method' ).
+	 * @param string          $callback Method name when $component is an object.
+	 * @param int             $priority Priority.
+	 * @param int             $accepted_args Accepted args.
 	 */
-	public function add_action( string $hook, object $component, string $callback, int $priority = 10, int $accepted_args = 1 ): void {
-		$this->actions[] = array( $hook, array( $component, $callback ), $priority, $accepted_args );
+	public function add_action( string $hook, $component, string $callback = '', int $priority = 10, int $accepted_args = 1 ): void {
+		$this->actions[] = array( $hook, $this->build_callback( $component, $callback ), $priority, $accepted_args );
 	}
 
 	/**
 	 * Add filter.
 	 *
-	 * @param string $hook Hook name.
-	 * @param object $component Component instance.
-	 * @param string $callback Method name.
-	 * @param int    $priority Priority.
-	 * @param int    $accepted_args Accepted args.
+	 * @param string          $hook Hook name.
+	 * @param object|array    $component Object instance, or callable array.
+	 * @param string          $callback Method name when $component is an object.
+	 * @param int             $priority Priority.
+	 * @param int             $accepted_args Accepted args.
 	 */
-	public function add_filter( string $hook, object $component, string $callback, int $priority = 10, int $accepted_args = 1 ): void {
-		$this->filters[] = array( $hook, array( $component, $callback ), $priority, $accepted_args );
+	public function add_filter( string $hook, $component, string $callback = '', int $priority = 10, int $accepted_args = 1 ): void {
+		$this->filters[] = array( $hook, $this->build_callback( $component, $callback ), $priority, $accepted_args );
+	}
+
+	/**
+	 * Build WordPress-compatible callback.
+	 *
+	 * @param object|array $component Component or callable.
+	 * @param string       $callback Method name for object callbacks.
+	 * @return array<int, mixed>
+	 */
+	private function build_callback( $component, string $callback ): array {
+		if ( is_array( $component ) ) {
+			return $component;
+		}
+		return array( $component, $callback );
 	}
 
 	/**

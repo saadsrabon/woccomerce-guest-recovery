@@ -145,14 +145,20 @@ class WorkflowRunner {
 	 */
 	private function template_body( string $template, array $guest, array $context ): string {
 		$coupon = $context['coupon_code'] ?? '';
-		return match ( $template ) {
-			'account_invitation' => '<p>' . sprintf( __( 'Hi %s, create your account for faster checkout!', 'gcrm' ), esc_html( $guest['first_name'] ?? '' ) ) . '</p>',
-			'vip_thank_you'      => '<p>' . __( 'Thank you for being a VIP customer!', 'gcrm' ) . '</p>',
-			'reengagement'       => '<p>' . __( 'We miss you! Here is a special offer to come back.', 'gcrm' ) . '</p>',
-			'discount_offer'     => '<p>' . sprintf( __( 'Use coupon %s on your next order.', 'gcrm' ), esc_html( $coupon ) ) . '</p>',
-			'vip_coupon'         => sprintf( __( 'VIP offer! Use code %s', 'gcrm' ), $coupon ),
-			default              => '<p>' . __( 'Hello from our store!', 'gcrm' ) . '</p>',
-		};
+		switch ( $template ) {
+			case 'account_invitation':
+				return '<p>' . sprintf( __( 'Hi %s, create your account for faster checkout!', 'gcrm' ), esc_html( $guest['first_name'] ?? '' ) ) . '</p>';
+			case 'vip_thank_you':
+				return '<p>' . __( 'Thank you for being a VIP customer!', 'gcrm' ) . '</p>';
+			case 'reengagement':
+				return '<p>' . __( 'We miss you! Here is a special offer to come back.', 'gcrm' ) . '</p>';
+			case 'discount_offer':
+				return '<p>' . sprintf( __( 'Use coupon %s on your next order.', 'gcrm' ), esc_html( $coupon ) ) . '</p>';
+			case 'vip_coupon':
+				return sprintf( __( 'VIP offer! Use code %s', 'gcrm' ), $coupon );
+			default:
+				return '<p>' . __( 'Hello from our store!', 'gcrm' ) . '</p>';
+		}
 	}
 
 	/**

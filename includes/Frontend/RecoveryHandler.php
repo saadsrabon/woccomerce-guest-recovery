@@ -55,5 +55,3 @@ class RecoveryHandler {
 		WC()->session->set( 'gcrm_recover_cart_id', (int) $cart['id'] );
 	}
 }
-
-RecoveryHandler::init();

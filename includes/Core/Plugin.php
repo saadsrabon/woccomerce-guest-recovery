@@ -10,6 +10,7 @@ namespace GCRM\Core;
 use GCRM\Admin\Assets;
 use GCRM\Admin\Menu;
 use GCRM\Frontend\CartTracker;
+use GCRM\Frontend\RecoveryHandler;
 use GCRM\REST\RestBootstrap;
 use GCRM\Services\OrdersSync;
 use GCRM\Services\RecoveryAutomation;
@@ -94,6 +95,7 @@ class Plugin {
 	 * Public hooks.
 	 */
 	private function define_public_hooks(): void {
+		RecoveryHandler::init();
 		$tracker = new CartTracker();
 		$this->loader->add_action( 'wp_enqueue_scripts', $tracker, 'enqueue_scripts' );
 		$this->loader->add_action( 'woocommerce_cart_updated', $tracker, 'on_cart_updated', 20 );
@@ -108,7 +110,7 @@ class Plugin {
 		$recovery = new RecoveryAutomation();
 		$workflow = new WorkflowRunner();
 
-		$this->loader->add_action( Cron::HOOK_PROCESS_QUEUE, BackgroundQueue::class, 'process_batch', 10, 0 );
+		$this->loader->add_action( Cron::HOOK_PROCESS_QUEUE, array( BackgroundQueue::class, 'process_batch' ), '', 10, 0 );
 		$this->loader->add_action( Cron::HOOK_ABANDONED_CARTS, $cron, 'mark_abandoned_carts', 10, 0 );
 		$this->loader->add_action( Cron::HOOK_RECOVERY_EMAILS, $recovery, 'process_recovery_sequences', 10, 0 );
 		$this->loader->add_action( Cron::HOOK_SYNC_GUESTS, $cron, 'sync_guest_customers', 10, 0 );

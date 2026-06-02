@@ -90,5 +90,3 @@ class Cron {
 		$sync->sync_all_guests();
 	}
 }
-
-add_filter( 'cron_schedules', array( Cron::class, 'add_schedules' ) );

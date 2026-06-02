@@ -123,8 +123,8 @@ class Updater {
 			'tested'        => $remote->tested ?? '',
 			'last_updated'  => $remote->last_updated ?? '',
 			'sections'      => array(
-				'description' => $remote->sections->description ?? '',
-				'changelog'   => $remote->sections->changelog ?? '',
+				'description' => $this->get_section_field( $remote, 'description' ),
+				'changelog'   => $this->get_changelog( $remote ),
 			),
 		);
 	}
@@ -137,8 +137,12 @@ class Updater {
 	 */
 	public function update_message( array $plugin_data, $response ): void {
 		$remote = $this->get_remote_info();
-		if ( $remote && ! empty( $remote->sections->changelog ) ) {
-			echo ' <span class="gcrm-update-changelog">' . wp_kses_post( $remote->sections->changelog ) . '</span>';
+		if ( ! $remote ) {
+			return;
+		}
+		$changelog = $this->get_changelog( $remote );
+		if ( $changelog ) {
+			echo ' <span class="gcrm-update-changelog">' . wp_kses_post( $changelog ) . '</span>';
 		}
 	}
 
@@ -241,22 +245,62 @@ class Updater {
 	public function get_remote_info( bool $force = false ): ?object {
 		if ( ! $force ) {
 			$cached = get_transient( self::CACHE_KEY );
-			if ( false !== $cached ) {
-				return $cached ? (object) $cached : null;
+			if ( false !== $cached && is_string( $cached ) ) {
+				$decoded = json_decode( $cached );
+				return is_object( $decoded ) ? $decoded : null;
 			}
 		}
 
 		$url = $this->get_check_url();
 		if ( ! $url ) {
-			set_transient( self::CACHE_KEY, null, self::CACHE_TTL );
+			set_transient( self::CACHE_KEY, '', self::CACHE_TTL );
 			return null;
 		}
 
 		$remote = $this->fetch_remote( $url );
-		set_transient( self::CACHE_KEY, $remote ? (array) $remote : null, self::CACHE_TTL );
+		set_transient( self::CACHE_KEY, $remote ? wp_json_encode( $remote ) : '', self::CACHE_TTL );
 		update_option( 'gcrm_update_last_check', current_time( 'mysql' ) );
 
 		return $remote;
+	}
+
+	/**
+	 * Get a section field from remote info.
+	 *
+	 * @param object $remote Remote info.
+	 * @param string $field Field name.
+	 */
+	private function get_section_field( object $remote, string $field ): string {
+		if ( ! isset( $remote->sections ) ) {
+			return '';
+		}
+		$sections = $remote->sections;
+		if ( is_object( $sections ) && isset( $sections->{$field} ) ) {
+			return (string) $sections->{$field};
+		}
+		if ( is_array( $sections ) && isset( $sections[ $field ] ) ) {
+			return (string) $sections[ $field ];
+		}
+		return '';
+	}
+
+	/**
+	 * Get changelog HTML from remote info (safe for cached data).
+	 *
+	 * @param object $remote Remote info.
+	 */
+	private function get_changelog( object $remote ): string {
+		if ( ! isset( $remote->sections ) ) {
+			return '';
+		}
+		$sections = $remote->sections;
+		if ( is_object( $sections ) && isset( $sections->changelog ) ) {
+			return (string) $sections->changelog;
+		}
+		if ( is_array( $sections ) && isset( $sections['changelog'] ) ) {
+			return (string) $sections['changelog'];
+		}
+		return '';
 	}
 
 	/**
