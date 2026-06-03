@@ -9,6 +9,7 @@ namespace GCRM\Core;
 
 use GCRM\Admin\Assets;
 use GCRM\Admin\Menu;
+use GCRM\DB\Schema;
 use GCRM\Frontend\CartTracker;
 use GCRM\Frontend\RecoveryHandler;
 use GCRM\REST\RestBootstrap;
@@ -59,6 +60,8 @@ class Plugin {
 	 * Run plugin.
 	 */
 	public function run(): void {
+		Schema::maybe_upgrade();
+
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 		$this->define_cron_hooks();

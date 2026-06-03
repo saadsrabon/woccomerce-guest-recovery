@@ -25,7 +25,7 @@ class WorkflowsPage {
 		<div class="wrap gcrm-wrap">
 			<h1><?php esc_html_e( 'Automated Marketing Workflows', 'gcrm' ); ?></h1>
 			<p><?php esc_html_e( 'Pre-configured workflows run automatically when triggers match (guest orders, VIP spend, inactive customers).', 'gcrm' ); ?></p>
-			<table class="wp-list-table widefat striped">
+			<table class="wp-list-table widefat striped gcrm-datatable">
 				<thead>
 					<tr>
 						<th><?php esc_html_e( 'Name', 'gcrm' ); ?></th>

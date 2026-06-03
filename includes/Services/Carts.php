@@ -48,11 +48,13 @@ class Carts {
 		foreach ( WC()->cart->get_cart() as $item ) {
 			$product = $item['data'] ?? null;
 			$items[] = array(
-				'product_id' => $item['product_id'] ?? 0,
-				'quantity'   => $item['quantity'] ?? 0,
-				'name'       => $product ? $product->get_name() : '',
-				'price'      => $product ? $product->get_price() : 0,
-				'image'      => $product ? wp_get_attachment_image_url( $product->get_image_id(), 'thumbnail' ) : '',
+				'product_id'     => (int) ( $item['product_id'] ?? 0 ),
+				'variation_id'   => (int) ( $item['variation_id'] ?? 0 ),
+				'quantity'       => (int) ( $item['quantity'] ?? 0 ),
+				'cart_item_data' => isset( $item['cart_item_data'] ) && is_array( $item['cart_item_data'] ) ? $item['cart_item_data'] : array(),
+				'name'           => $product ? $product->get_name() : '',
+				'price'          => $product ? $product->get_price() : 0,
+				'image'          => $product ? wp_get_attachment_image_url( $product->get_image_id(), 'thumbnail' ) : '',
 			);
 		}
 		return $items;

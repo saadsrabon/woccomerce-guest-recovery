@@ -7,6 +7,8 @@
 
 namespace GCRM\Integrations;
 
+use GCRM\Core\PhpCompat;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -76,7 +78,7 @@ class WhatsAppCloud {
 		if ( ! $encrypted ) {
 			return '';
 		}
-		if ( function_exists( 'openssl_decrypt' ) && str_starts_with( $encrypted, 'enc:' ) ) {
+		if ( function_exists( 'openssl_decrypt' ) && PhpCompat::str_starts_with( $encrypted, 'enc:' ) ) {
 			$key = wp_salt( 'auth' );
 			$raw = base64_decode( substr( $encrypted, 4 ), true );
 			if ( $raw ) {

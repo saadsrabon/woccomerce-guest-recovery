@@ -45,36 +45,57 @@ class RecoveryAutomation {
 	private function process_cart_sequence( array $cart, array $sequence ): void {
 		$step         = (int) ( $cart['recovery_step'] ?? 0 );
 		$abandoned_at = $cart['abandoned_at'] ?? $cart['last_activity'] ?? '';
-		if ( ! $abandoned_at || $step >= count( $sequence ) ) {
+		if ( ! $abandoned_at ) {
 			return;
 		}
 
-		$config = $sequence[ $step ] ?? null;
-		if ( ! $config || empty( $config['enabled'] ) ) {
+		while ( $step < count( $sequence ) ) {
+			$config = $sequence[ $step ] ?? null;
+			if ( ! $config || empty( $config['enabled'] ) ) {
+				++$step;
+				continue;
+			}
+
+			$delay_hours = (int) ( $config['delay_hours'] ?? 1 );
+			$due_time    = strtotime( $abandoned_at ) + ( $delay_hours * HOUR_IN_SECONDS );
+			if ( time() < $due_time ) {
+				return;
+			}
+
+			$type = $config['type'] ?? 'email';
+			if ( 'email' === $type && ! empty( $cart['email'] ) ) {
+				$this->send_recovery_email( $cart );
+			} elseif ( 'whatsapp' === $type && ! empty( $cart['phone'] ) && 'yes' === get_option( 'gcrm_recovery_whatsapp_enabled', 'no' ) ) {
+				$this->send_recovery_whatsapp( $cart );
+			}
+
+			global $wpdb;
+			$wpdb->update(
+				\GCRM\DB\Schema::table( 'abandoned_carts' ),
+				array( 'recovery_step' => $step + 1 ),
+				array( 'id' => (int) $cart['id'] ),
+				array( '%d' ),
+				array( '%d' )
+			);
 			return;
 		}
+	}
 
-		$delay_hours = (int) ( $config['delay_hours'] ?? 1 );
-		$due_time    = strtotime( $abandoned_at ) + ( $delay_hours * HOUR_IN_SECONDS );
-		if ( time() < $due_time ) {
-			return;
+	/**
+	 * Reuse one recovery coupon per abandoned cart.
+	 *
+	 * @param int $cart_id Cart ID.
+	 */
+	private function get_or_create_recovery_coupon( int $cart_id ): string {
+		$option_key = 'gcrm_recovery_coupon_' . $cart_id;
+		$existing   = get_option( $option_key, '' );
+		if ( is_string( $existing ) && $existing ) {
+			return $existing;
 		}
 
-		$type = $config['type'] ?? 'email';
-		if ( 'email' === $type && ! empty( $cart['email'] ) ) {
-			$this->send_recovery_email( $cart );
-		} elseif ( 'whatsapp' === $type && ! empty( $cart['phone'] ) && 'yes' === get_option( 'gcrm_recovery_whatsapp_enabled', 'no' ) ) {
-			$this->send_recovery_whatsapp( $cart );
-		}
-
-		global $wpdb;
-		$wpdb->update(
-			\GCRM\DB\Schema::table( 'abandoned_carts' ),
-			array( 'recovery_step' => $step + 1 ),
-			array( 'id' => (int) $cart['id'] ),
-			array( '%d' ),
-			array( '%d' )
-		);
+		$code = ( new Coupons() )->for_abandoned_cart();
+		update_option( $option_key, $code, false );
+		return $code;
 	}
 
 	/**
@@ -83,13 +104,14 @@ class RecoveryAutomation {
 	 * @param array<string, mixed> $cart Cart.
 	 */
 	public function send_recovery_email( array $cart ): void {
-		$coupon  = ( new Coupons() )->for_abandoned_cart();
+		$cart_id = (int) $cart['id'];
+		$coupon  = $this->get_or_create_recovery_coupon( $cart_id );
 		$items   = json_decode( $cart['cart_contents'] ?? '[]', true );
-		$body    = $this->build_recovery_body( $items, Carts::recovery_url( (string) $cart['recovery_token'] ), $coupon );
+		$body    = $this->build_recovery_body( is_array( $items ) ? $items : array(), Carts::recovery_url( (string) $cart['recovery_token'] ), $coupon );
 
 		$log_id = ( new EmailLogRepository() )->create(
 			array(
-				'cart_id'  => (int) $cart['id'],
+				'cart_id'  => $cart_id,
 				'to_email' => $cart['email'],
 				'subject'  => sprintf( __( 'Complete your order at %s', 'gcrm' ), get_bloginfo( 'name' ) ),
 				'body'     => $body,
@@ -117,7 +139,8 @@ class RecoveryAutomation {
 	 * @param array<string, mixed> $cart Cart.
 	 */
 	public function send_recovery_whatsapp( array $cart ): void {
-		$coupon  = ( new Coupons() )->for_abandoned_cart();
+		$cart_id = (int) $cart['id'];
+		$coupon  = $this->get_or_create_recovery_coupon( $cart_id );
 		$message = sprintf(
 			/* translators: 1: store name, 2: cart value, 3: recovery link, 4: coupon */
 			__( "Hi! You left items in your cart at %1\$s (value: %2\$s). Complete checkout: %3\$s Use code %4\$s for a discount.", 'gcrm' ),

@@ -94,7 +94,7 @@ class SegmentsPage {
 			</form>
 
 			<h2><?php esc_html_e( 'Saved Segments', 'gcrm' ); ?></h2>
-			<table class="wp-list-table widefat striped">
+			<table class="wp-list-table widefat striped gcrm-datatable">
 				<thead><tr><th><?php esc_html_e( 'Name', 'gcrm' ); ?></th><th><?php esc_html_e( 'Slug', 'gcrm' ); ?></th><th><?php esc_html_e( 'Prebuilt', 'gcrm' ); ?></th><th><?php esc_html_e( 'Actions', 'gcrm' ); ?></th></tr></thead>
 				<tbody>
 					<?php foreach ( $segments as $seg ) : ?>

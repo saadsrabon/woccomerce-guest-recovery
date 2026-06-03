@@ -7,6 +7,8 @@
 
 namespace GCRM\Integrations;
 
+use GCRM\Core\PhpCompat;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -30,7 +32,7 @@ class TwilioWhatsApp {
 			return new \WP_Error( 'gcrm_twilio', __( 'Twilio credentials not configured.', 'gcrm' ) );
 		}
 
-		$phone = 'whatsapp:' . ( str_starts_with( $phone, '+' ) ? $phone : '+' . $phone );
+		$phone = 'whatsapp:' . ( PhpCompat::str_starts_with( $phone, '+' ) ? $phone : '+' . $phone );
 		$url   = 'https://api.twilio.com/2010-04-01/Accounts/' . $sid . '/Messages.json';
 
 		$response = wp_remote_post(
@@ -64,7 +66,7 @@ class TwilioWhatsApp {
 	 */
 	private function get_token(): string {
 		$encrypted = get_option( 'gcrm_twilio_auth_token', '' );
-		if ( str_starts_with( (string) $encrypted, 'enc:' ) && function_exists( 'openssl_decrypt' ) ) {
+		if ( PhpCompat::str_starts_with( (string) $encrypted, 'enc:' ) && function_exists( 'openssl_decrypt' ) ) {
 			$key = wp_salt( 'auth' );
 			$raw = base64_decode( substr( $encrypted, 4 ), true );
 			if ( $raw ) {

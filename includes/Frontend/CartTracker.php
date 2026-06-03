@@ -55,6 +55,10 @@ class CartTracker {
 	 * @param string $posted_data Posted data string.
 	 */
 	public function capture_checkout_fields( $posted_data ): void {
+		if ( ! $this->has_wc_session() ) {
+			return;
+		}
+
 		parse_str( $posted_data, $data );
 		if ( ! empty( $data['billing_email'] ) ) {
 			WC()->session->set( 'gcrm_capture_email', sanitize_email( $data['billing_email'] ) );
@@ -71,7 +75,7 @@ class CartTracker {
 	 * @param array<string, mixed> $data Optional checkout data.
 	 */
 	private function send_track_request( array $data = array() ): void {
-		if ( ! WC()->cart || WC()->cart->is_empty() ) {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart || WC()->cart->is_empty() || ! $this->has_wc_session() ) {
 			return;
 		}
 
@@ -91,5 +95,12 @@ class CartTracker {
 				'status'        => 'active',
 			)
 		);
+	}
+
+	/**
+	 * Whether WooCommerce session is available.
+	 */
+	private function has_wc_session(): bool {
+		return function_exists( 'WC' ) && WC()->session;
 	}
 }

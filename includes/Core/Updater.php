@@ -396,14 +396,11 @@ class Updater {
 		$download_url = '';
 		if ( ! empty( $release->assets ) && is_array( $release->assets ) ) {
 			foreach ( $release->assets as $asset ) {
-				if ( ! empty( $asset->browser_download_url ) && str_ends_with( strtolower( $asset->name ?? '' ), '.zip' ) ) {
+				if ( ! empty( $asset->browser_download_url ) && PhpCompat::str_ends_with( strtolower( $asset->name ?? '' ), '.zip' ) ) {
 					$download_url = $asset->browser_download_url;
 					break;
 				}
 			}
-		}
-		if ( ! $download_url && ! empty( $release->zipball_url ) ) {
-			$download_url = $release->zipball_url;
 		}
 		if ( ! $download_url ) {
 			return null;

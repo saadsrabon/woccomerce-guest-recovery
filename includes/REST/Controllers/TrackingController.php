@@ -84,7 +84,13 @@ class TrackingController {
 				array( '%d' )
 			);
 		}
-		wp_safe_redirect( $url ?: home_url() );
+		$target = $url ?: home_url( '/' );
+		$validated = wp_validate_redirect( $target, home_url( '/' ) );
+		if ( $validated ) {
+			wp_safe_redirect( $validated );
+		} else {
+			wp_redirect( $target, 302 ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
+		}
 		exit;
 	}
 }

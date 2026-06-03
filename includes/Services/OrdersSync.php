@@ -47,7 +47,13 @@ class OrdersSync {
 		$this->sync_order( (int) $order_id );
 		$order = wc_get_order( $order_id );
 		if ( $order && 0 === (int) $order->get_customer_id() ) {
-			( new WorkflowRunner() )->trigger( 'guest_order_completed', array( 'order_id' => $order_id ) );
+			( new WorkflowRunner() )->trigger(
+				'guest_order_completed',
+				array(
+					'order_id' => $order_id,
+					'email'    => $order->get_billing_email(),
+				)
+			);
 		}
 	}
 
@@ -106,12 +112,16 @@ class OrdersSync {
 	 * @return array{order_count: int, total_spend: float}
 	 */
 	public function aggregate_guest_stats( string $email ): array {
+		$statuses = function_exists( 'wc_get_is_paid_statuses' )
+			? wc_get_is_paid_statuses()
+			: array( 'processing', 'completed', 'on-hold' );
+
 		$orders = wc_get_orders(
 			array(
 				'billing_email' => $email,
 				'customer_id'   => 0,
 				'limit'         => -1,
-				'status'        => array_keys( wc_get_order_statuses() ),
+				'status'        => $statuses,
 			)
 		);
 
@@ -129,11 +139,14 @@ class OrdersSync {
 	}
 
 	/**
-	 * Full sync of all guest orders.
+	 * Full sync of all guest orders (batched per cron run).
 	 */
 	public function sync_all_guests(): void {
-		$page  = 1;
-		$limit = 100;
+		$limit      = 100;
+		$max_pages  = 5;
+		$page       = max( 1, (int) get_option( 'gcrm_sync_guest_page', 1 ) );
+		$pages_done = 0;
+		$orders     = array();
 
 		do {
 			$orders = wc_get_orders(
@@ -149,8 +162,16 @@ class OrdersSync {
 			foreach ( $orders as $order ) {
 				$this->sync_order( $order->get_id() );
 			}
+
 			++$page;
-		} while ( count( $orders ) === $limit );
+			++$pages_done;
+		} while ( count( $orders ) === $limit && $pages_done < $max_pages );
+
+		if ( count( $orders ) < $limit ) {
+			update_option( 'gcrm_sync_guest_page', 1, false );
+		} else {
+			update_option( 'gcrm_sync_guest_page', $page, false );
+		}
 	}
 
 	/**

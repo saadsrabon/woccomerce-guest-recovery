@@ -7,6 +7,7 @@
 
 namespace GCRM\REST\Controllers;
 
+use GCRM\REST\RestBootstrap;
 use GCRM\Services\Carts;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -28,7 +29,7 @@ class CartController {
 			array(
 				'methods'             => 'POST',
 				'callback'            => array( $this, 'track' ),
-				'permission_callback' => '__return_true',
+				'permission_callback' => array( RestBootstrap::class, 'cart_track_permission' ),
 			)
 		);
 	}

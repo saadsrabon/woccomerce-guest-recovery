@@ -25,6 +25,15 @@ class AbandonedCartsTable extends \WP_List_Table {
 		parent::__construct( array( 'singular' => 'cart', 'plural' => 'carts' ) );
 	}
 
+	/**
+	 * Table CSS classes.
+	 *
+	 * @return array<int, string>
+	 */
+	protected function get_table_classes(): array {
+		return array( 'widefat', 'striped', 'gcrm-datatable', $this->_args['plural'] );
+	}
+
 	public function get_columns(): array {
 		return array(
 			'customer_name' => __( 'Customer', 'gcrm' ),
@@ -80,6 +89,7 @@ class AbandonedCartsTable extends \WP_List_Table {
 			)
 		);
 		$this->items = $result['items'];
+		$this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );
 		$this->set_pagination_args(
 			array(
 				'total_items' => $result['total'],

@@ -83,7 +83,16 @@ class GuestRepository extends BaseRepository {
 			'orderby'       => 'last_order_date',
 			'order'         => 'DESC',
 		);
-		$args   = wp_parse_args( $args, $defaults );
+		$args         = wp_parse_args( $args, $defaults );
+		$product_id   = (int) $args['product_id'];
+		$list_page    = (int) $args['page'];
+		$list_per_page = (int) $args['per_page'];
+
+		if ( $product_id > 0 ) {
+			$args['page']     = 1;
+			$args['per_page'] = 99999;
+		}
+
 		$where  = array( '1=1' );
 		$params = array();
 
@@ -127,10 +136,13 @@ class GuestRepository extends BaseRepository {
 		$list_params = array_merge( $params, array( (int) $args['per_page'], $offset ) );
 		$list_sql    = "SELECT * FROM {$this->table()} WHERE {$where_sql} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d";
 		$list_sql    = $wpdb->prepare( $list_sql, ...$list_params ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$items       = $wpdb->get_results( $list_sql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$items = $wpdb->get_results( $list_sql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-		if ( (int) $args['product_id'] > 0 && $items ) {
-			$items = $this->filter_by_product( $items, (int) $args['product_id'] );
+		if ( $product_id > 0 ) {
+			$items  = $this->filter_by_product( $items ?: array(), $product_id );
+			$total  = count( $items );
+			$offset = max( 0, ( $list_page - 1 ) * $list_per_page );
+			$items  = array_slice( $items, $offset, $list_per_page );
 		}
 
 		return array(

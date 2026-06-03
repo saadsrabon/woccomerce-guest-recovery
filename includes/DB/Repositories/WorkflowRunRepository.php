@@ -42,6 +42,38 @@ class WorkflowRunRepository extends BaseRepository {
 	}
 
 	/**
+	 * Whether an active or recent run already exists for this workflow target.
+	 *
+	 * @param int    $workflow_id Workflow ID.
+	 * @param int    $guest_id Guest ID.
+	 * @param int    $order_id Order ID.
+	 * @param string $trigger_type Trigger type.
+	 */
+	public function has_existing_run( int $workflow_id, int $guest_id, int $order_id, string $trigger_type ): bool {
+		global $wpdb;
+
+		if ( 'guest_order_completed' === $trigger_type && $order_id > 0 ) {
+			$sql = $wpdb->prepare(
+				"SELECT id FROM {$this->table()} WHERE workflow_id = %d AND order_id = %d AND status IN ('pending','running','completed') LIMIT 1",
+				$workflow_id,
+				$order_id
+			);
+			return (bool) $wpdb->get_var( $sql );
+		}
+
+		if ( $guest_id > 0 ) {
+			$sql = $wpdb->prepare(
+				"SELECT id FROM {$this->table()} WHERE workflow_id = %d AND guest_id = %d AND status IN ('pending','running','completed') LIMIT 1",
+				$workflow_id,
+				$guest_id
+			);
+			return (bool) $wpdb->get_var( $sql );
+		}
+
+		return false;
+	}
+
+	/**
 	 * Get due runs.
 	 *
 	 * @return array<int, array<string, mixed>>
@@ -55,6 +87,23 @@ class WorkflowRunRepository extends BaseRepository {
 			),
 			ARRAY_A
 		) ?: array();
+	}
+
+	/**
+	 * Persist run context JSON.
+	 *
+	 * @param int                  $id Run ID.
+	 * @param array<string, mixed> $context Context.
+	 */
+	public function update_context( int $id, array $context ): void {
+		global $wpdb;
+		$wpdb->update(
+			$this->table(),
+			array( 'context' => wp_json_encode( $context ) ),
+			array( 'id' => $id ),
+			array( '%s' ),
+			array( '%d' )
+		);
 	}
 
 	/**

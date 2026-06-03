@@ -28,7 +28,7 @@ class RecoveryHandler {
 	 * Restore cart from recovery token.
 	 */
 	public static function handle_recovery(): void {
-		if ( empty( $_GET['gcrm_recover'] ) || ! function_exists( 'WC' ) ) {
+		if ( empty( $_GET['gcrm_recover'] ) || ! function_exists( 'WC' ) || ! WC()->cart ) {
 			return;
 		}
 
@@ -39,19 +39,42 @@ class RecoveryHandler {
 		}
 
 		$items = json_decode( $cart['cart_contents'], true );
-		if ( ! is_array( $items ) || ! WC()->cart ) {
+		if ( ! is_array( $items ) ) {
 			return;
 		}
 
 		WC()->cart->empty_cart();
 		foreach ( $items as $item ) {
-			$product_id = (int) ( $item['product_id'] ?? 0 );
-			$qty        = (int) ( $item['quantity'] ?? 1 );
-			if ( $product_id ) {
-				WC()->cart->add_to_cart( $product_id, $qty );
-			}
+			self::add_item_to_cart( $item );
 		}
 
-		WC()->session->set( 'gcrm_recover_cart_id', (int) $cart['id'] );
+		if ( WC()->session ) {
+			WC()->session->set( 'gcrm_recover_cart_id', (int) $cart['id'] );
+		}
+	}
+
+	/**
+	 * Add a snapshot line item back into the cart.
+	 *
+	 * @param array<string, mixed> $item Snapshot item.
+	 */
+	private static function add_item_to_cart( array $item ): void {
+		$product_id   = (int) ( $item['product_id'] ?? 0 );
+		$variation_id = (int) ( $item['variation_id'] ?? 0 );
+		$qty          = max( 1, (int) ( $item['quantity'] ?? 1 ) );
+
+		if ( ! $product_id ) {
+			return;
+		}
+
+		$cart_item_data = array();
+		if ( ! empty( $item['cart_item_data'] ) && is_array( $item['cart_item_data'] ) ) {
+			$cart_item_data = $item['cart_item_data'];
+		}
+
+		$added = WC()->cart->add_to_cart( $product_id, $qty, $variation_id, array(), $cart_item_data );
+		if ( ! $added && $variation_id ) {
+			WC()->cart->add_to_cart( $product_id, $qty );
+		}
 	}
 }

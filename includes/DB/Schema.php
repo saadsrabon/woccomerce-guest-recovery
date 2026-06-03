@@ -47,6 +47,19 @@ class Schema {
 	}
 
 	/**
+	 * Run dbDelta when the plugin DB version changes.
+	 */
+	public static function maybe_upgrade(): void {
+		$installed = (string) get_option( 'gcrm_db_version', '' );
+		if ( $installed && version_compare( $installed, GCRM_DB_VERSION, '>=' ) ) {
+			return;
+		}
+
+		self::create_tables();
+		update_option( 'gcrm_db_version', GCRM_DB_VERSION );
+	}
+
+	/**
 	 * Create all tables.
 	 */
 	public static function create_tables(): void {

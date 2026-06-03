@@ -40,7 +40,7 @@ class InsightsPage {
 			</div>
 
 			<h2><?php esc_html_e( 'Top Countries', 'gcrm' ); ?></h2>
-			<table class="wp-list-table widefat striped">
+			<table class="wp-list-table widefat striped gcrm-datatable">
 				<thead><tr><th><?php esc_html_e( 'Country', 'gcrm' ); ?></th><th><?php esc_html_e( 'Customers', 'gcrm' ); ?></th><th><?php esc_html_e( 'Revenue', 'gcrm' ); ?></th></tr></thead>
 				<tbody>
 					<?php foreach ( $stats['top_countries'] as $row ) : ?>
@@ -54,7 +54,7 @@ class InsightsPage {
 			</table>
 
 			<h2><?php esc_html_e( 'Top Spending Customers', 'gcrm' ); ?></h2>
-			<table class="wp-list-table widefat striped">
+			<table class="wp-list-table widefat striped gcrm-datatable">
 				<thead><tr><th><?php esc_html_e( 'Name', 'gcrm' ); ?></th><th><?php esc_html_e( 'Email', 'gcrm' ); ?></th><th><?php esc_html_e( 'Spend', 'gcrm' ); ?></th></tr></thead>
 				<tbody>
 					<?php foreach ( $stats['top_customers'] as $c ) : ?>

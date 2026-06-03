@@ -78,7 +78,7 @@ class CustomerProfilePage {
 			</div>
 
 			<h2><?php esc_html_e( 'Order History', 'gcrm' ); ?></h2>
-			<table class="wp-list-table widefat striped">
+			<table class="wp-list-table widefat striped gcrm-datatable">
 				<thead><tr><th>ID</th><th><?php esc_html_e( 'Date', 'gcrm' ); ?></th><th><?php esc_html_e( 'Total', 'gcrm' ); ?></th><th><?php esc_html_e( 'Status', 'gcrm' ); ?></th></tr></thead>
 				<tbody>
 					<?php foreach ( $orders as $order ) : ?>
@@ -93,7 +93,7 @@ class CustomerProfilePage {
 			</table>
 
 			<h2><?php esc_html_e( 'Email Activity', 'gcrm' ); ?></h2>
-			<table class="wp-list-table widefat striped">
+			<table class="wp-list-table widefat striped gcrm-datatable">
 				<thead><tr><th><?php esc_html_e( 'Subject', 'gcrm' ); ?></th><th><?php esc_html_e( 'Status', 'gcrm' ); ?></th><th><?php esc_html_e( 'Sent', 'gcrm' ); ?></th></tr></thead>
 				<tbody>
 					<?php foreach ( $email_logs as $log ) : ?>

@@ -74,7 +74,7 @@ class CampaignsPage {
 			</form>
 
 			<h2><?php esc_html_e( 'Campaigns', 'gcrm' ); ?></h2>
-			<table class="wp-list-table widefat striped">
+			<table class="wp-list-table widefat striped gcrm-datatable">
 				<thead>
 					<tr>
 						<th><?php esc_html_e( 'Name', 'gcrm' ); ?></th>

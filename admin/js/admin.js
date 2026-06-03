@@ -1,10 +1,72 @@
 (function ($) {
 	'use strict';
 
-	$(document).ready(function () {
-		if ($.fn.DataTable && $('.wp-list-table').length) {
-			$('.wp-list-table').DataTable({ pageLength: 20, order: [] });
+	/**
+	 * Prepare a WordPress admin table for DataTables (fix TN/18 column mismatch).
+	 *
+	 * @param {HTMLTableElement} table Table element.
+	 * @return {boolean} Whether the table has data rows to initialize.
+	 */
+	function prepareTableForDataTables(table) {
+		var $table = $(table);
+
+		$table.find('tfoot').remove();
+
+		var colCount = $table.find('thead tr').first().children('th, td').length;
+		if (!colCount) {
+			return false;
 		}
+
+		$table.find('tbody tr').each(function () {
+			var $row = $(this);
+			var $cells = $row.children('th, td');
+
+			if ($cells.length === 1 && $cells.first().attr('colspan')) {
+				$row.remove();
+				return;
+			}
+
+			if ($cells.length !== colCount) {
+				$row.remove();
+			}
+		});
+
+		return $table.find('tbody tr').length > 0;
+	}
+
+	/**
+	 * Initialize DataTables on GCRM tables.
+	 */
+	function initGcrmDataTables() {
+		if (!$.fn.DataTable) {
+			return;
+		}
+
+		$('table.gcrm-datatable').each(function () {
+			var table = this;
+
+			if ($.fn.DataTable.isDataTable(table)) {
+				return;
+			}
+
+			if (!prepareTableForDataTables(table)) {
+				return;
+			}
+
+			var hasWpPagination = $(table).closest('.gcrm-wrap, .wrap').find('.tablenav').length > 0;
+
+			$(table).DataTable({
+				pageLength: 20,
+				order: [],
+				paging: !hasWpPagination,
+				searching: true,
+				info: !hasWpPagination
+			});
+		});
+	}
+
+	$(document).ready(function () {
+		initGcrmDataTables();
 
 		var chartEl = document.getElementById('gcrm-revenue-chart');
 		var chartDataEl = document.getElementById('gcrm-chart-data');
